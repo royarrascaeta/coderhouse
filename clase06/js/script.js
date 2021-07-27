@@ -24,18 +24,26 @@ const productos = [
 ]
 
 //Creación de nueva clase y sus métodos
-class Pedido{
-  constructor(producto, precio, cantidad){
-    this.producto = producto,
-    this.precio = precio,
-    this.cantidad = cantidad,
+class Carrito{
+  constructor(){
+    this.productos = [],
     this.envio = 0,
     this.subTotal = 0,
     this.total = 0
   }
 
+  mostrarProductos(){
+    let detalle = "";
+    for(let producto of this.productos){
+      detalle += `- ${producto.nombre} ($${producto.precio}) x ${producto.cantidad}\n`
+    }
+    return detalle.trim();
+  }
+
   calcularSubtotal(){
-    this.subTotal = this.precio * this.cantidad;
+    for(let producto of this.productos){
+      this.subTotal += producto.precio * producto.cantidad;
+    }
   }
   
   calcularIVA(){
@@ -43,7 +51,7 @@ class Pedido{
   }
   
   consultaEnvio(){
-    return confirm("Producto elegido: " + this.producto + " x " + this.cantidad + "\n¿Desea que le enviemos el producto a domicilio?") ? pedido.calcularEnvio() : this.envio = 0;
+    return confirm("Detalle del pedido: \n" + this.mostrarProductos() + "\n\n¿Desea que le enviemos el producto a domicilio?") ? this.calcularEnvio() : this.envio = 0;
   }
 
   calcularEnvio(){
@@ -60,15 +68,20 @@ class Pedido{
   }
 }
 
-//Creación de función que retorna la nueva instancia
-function pedidoProducto(){
+
+//Creación de nueva instancia de la clase
+const carrito1 = new Carrito();
+
+
+//Creación de función que agregar productos al carrito
+function agregarAlCarrito(){
   let idProducto = 0,
       cantidadProducto = 0;
   
   //Entrada de datos, id del producto a comprar
   while(!idProducto || idProducto <= 0 || idProducto > 4){
     idProducto = parseInt(prompt(
-      `¿Qué producto desea comprar? Introduzca el número junto al nombre del producto:"
+      `¿Qué producto desea comprar? Introduzca el número junto al nombre del producto:
       - ${productos[0].id}: ${productos[0].nombre} ($${productos[0].precio})
       - ${productos[1].id}: ${productos[1].nombre} ($${productos[1].precio})
       - ${productos[2].id}: ${productos[2].nombre} ($${productos[2].precio})
@@ -83,29 +96,43 @@ function pedidoProducto(){
     cantidadProducto = parseInt(prompt("Producto elegido: " + productoElegido.nombre + "\nIntroduzca la cantidad deseada. (Solo números)"));
   }
 
-  //Retorno de la función, una nueva instancia de la clase Pedido
-  return new Pedido(productoElegido.nombre, productoElegido.precio, cantidadProducto)
+  //Agrego el nuevo producto al arreglo productos del carrito
+  let indice = carrito1.productos.findIndex(el=>el.nombre == productoElegido.nombre);
+
+  if(indice != -1){
+    carrito1.productos[indice].cantidad += cantidadProducto
+  }else{
+    carrito1.productos.push({"nombre": productoElegido.nombre, "precio": productoElegido.precio, "cantidad":cantidadProducto});
+  }
+  
+  if(confirm("¿Desea agregar otro producto?")){
+    agregarAlCarrito()
+  }
 }
 
 //Ejecución del programa
-alert("Bienvenido/a a la tienda!");
-
-//Creación de nueva instancia de la clase
-const pedido = pedidoProducto();
-
-//Llamada a métodos de la clase
-pedido.calcularSubtotal();
-pedido.calcularIVA();
-pedido.consultaEnvio();
-pedido.calcularTotal();
-
-//Muestra de los datos en pantalla
-alert(`
-Detalle del pedido:
-
-- ${pedido.producto} x ${pedido.cantidad}: $${pedido.precio * pedido.cantidad}
-- IVA 21%: $${pedido.calcularIVA()}
-- Costo de envío: $${pedido.envio}
-
-Total = $${pedido.total}
-`)
+//Está dentro de un setTimeOut para que pueda cargar el contenido visual antes de que aparezca el primer alert
+setTimeout(() => {
+  alert("Bienvenido/a a la tienda!");
+  
+  agregarAlCarrito();
+  
+  //Llamada a métodos de la clase
+  carrito1.calcularSubtotal();
+  carrito1.calcularIVA();
+  carrito1.consultaEnvio();
+  carrito1.calcularTotal();
+  
+  //Muestra de los datos en pantalla
+  alert(`
+  Detalle del pedido:
+  ${carrito1.mostrarProductos()}
+  ----------
+  - Subtotal: $${carrito1.subTotal}
+  ----------
+  - IVA 21%: $${carrito1.calcularIVA()}
+  - Costo de envío: $${carrito1.envio}
+  ========
+  - TOTAL = $${carrito1.total}
+  `);
+}, 1000);
